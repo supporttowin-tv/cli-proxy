@@ -1,0 +1,27 @@
+management:
+  endpoint:
+    gateway:
+      enabled: true
+server:
+  forward-headers-strategy: framework
+  port: 8081
+
+backend:
+  instigator:
+    url: https://instigator.mpl-technology.co.uk
+    pathMatch: /instigator
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          useInsecureTrustManager: true
+
+logging:
+  level:
+    reactor:
+      netty: INFO
+    org:
+      springframework:
+        cloud:
+          gateway: INFO
