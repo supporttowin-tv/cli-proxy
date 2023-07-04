@@ -18,6 +18,7 @@ import reactor.netty.transport.logging.AdvancedByteBufFormat;
 import tv.supporttowin.instigatorProxy.constants.Service;
 import tv.supporttowin.instigatorProxy.factory.CustomPathMatchingPredicateFactory;
 import tv.supporttowin.instigatorProxy.factory.CustomPathMatchingPredicateFactory.CustomPathMatchingConfig;
+import tv.supporttowin.instigatorProxy.filter.InstigatorRequestBodyRewriterFilterFactory;
 import tv.supporttowin.instigatorProxy.filter.PathRewriteFilter;
 import tv.supporttowin.instigatorProxy.matchers.PathMatchers;
 
@@ -32,17 +33,21 @@ public class Gateway {
 
     private final SetRequestHeaderGatewayFilterFactory setRequestHeaderGatewayFilterFactory;
 
+    private final InstigatorRequestBodyRewriterFilterFactory requestBodyMutatingFilter;
+
     private final PathRewriteFilter pathRewriteFilter;
 
     @Autowired
     public Gateway(
             final CustomPathMatchingPredicateFactory custompathMatchingPredicateFactory,
             final SetRequestHeaderGatewayFilterFactory setRequestHeaderGatewayFilterFactory,
-            final PathRewriteFilter pathRewriteFilter
+            final PathRewriteFilter pathRewriteFilter,
+            final InstigatorRequestBodyRewriterFilterFactory requestBodyMutatingFilter
     ) {
         this.custompathMatchingPredicateFactory = custompathMatchingPredicateFactory;
         this.setRequestHeaderGatewayFilterFactory = setRequestHeaderGatewayFilterFactory;
         this.pathRewriteFilter = pathRewriteFilter;
+        this.requestBodyMutatingFilter = requestBodyMutatingFilter;
     }
 
     @Bean
@@ -64,6 +69,7 @@ public class Gateway {
                 r.predicate(custompathMatchingPredicateFactory.apply(new CustomPathMatchingConfig(service)))
                         .filters(f -> f
                                 .filter(setRequestHeaderGatewayFilterFactory.apply(c -> c.setName("Content-Type").setValue("application/json")))
+                                .filter(requestBodyMutatingFilter.apply(new CustomPathMatchingConfig(Service.INSTIGATOR)))
                                 .filter(pathRewriteFilter.apply(new CustomPathMatchingConfig(service)))
                         )
                         .uri(url);
