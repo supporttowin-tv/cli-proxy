@@ -1,6 +1,5 @@
 package tv.supporttowin.instigatorProxy.rewriters;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,15 +24,14 @@ public class InstigatorRewriteFunction implements RewriteFunction<String, String
 
     @Override
     public Publisher<String> apply(ServerWebExchange serverWebExchange, String oldBody) {
-        JsonNode originalJson;
         try {
-            originalJson = mapper.readTree(oldBody);
+            final var originalJson = mapper.readTree(oldBody);
             var customerNode = mapper.createObjectNode();
             customerNode.put("mobile", originalJson.get("customerMobile").asText());
             final var rootObj = mapper.createObjectNode();
             rootObj.put("client_id", originalJson.get("client_id").asText());
             rootObj.put("campaign_id", originalJson.get("campaign_id").asText());
-            rootObj.set("customer", originalJson);
+            rootObj.set("customer", customerNode);
             String newBody = mapper.writeValueAsString(rootObj);
             return Mono.just(newBody);
         } catch (Exception e) {
